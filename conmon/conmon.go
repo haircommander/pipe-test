@@ -51,7 +51,7 @@ func (c *Conmon) Make() error {
 }
 
 func (c *Conmon) checkBinary() bool {
-	binary := filepath.Join(c.parentDir, "pipe")
+	binary := filepath.Join(c.parentDir, executableName)
 	if _, err := os.Stat(binary); os.IsNotExist(err) {
 		return false
 	}
