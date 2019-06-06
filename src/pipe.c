@@ -97,8 +97,10 @@ static int get_pipe_fd_from_env(const char *envname)
 
 	return pipe_fd;
 }
+#define BUF_SIZE 8192
 
 int main() {
+	char buf[BUF_SIZE];
 	int main_pid = fork();
 	if (main_pid < 0) {
 		pexit("Failed to fork the create command");
@@ -107,10 +109,19 @@ int main() {
 	}
 	
 	_cleanup_close_ int sync_pipe_fd = get_pipe_fd_from_env("_OCI_SYNCPIPE");
-	//_cleanup_close_ int end_pipe_fd = get_pipe_fd_from_env("_OCI_ENDPIPE");
+	_cleanup_close_ int end_pipe_fd = get_pipe_fd_from_env("_OCI_ENDPIPE");
 
+	ndebug("about to run first");
 	write_sync_fd(sync_pipe_fd, 0, 0);
+	ndebug("about to run second");
 	write_sync_fd(sync_pipe_fd, 0, 0);
+
+	ndebug("sending back to parent");
+	int num_read = read(end_pipe_fd, buf, BUF_SIZE);
+	if (num_read < 0) {
+		pexit("end-pipe read failed");
+	}
+	close(end_pipe_fd);
 	
 	return EXIT_SUCCESS;
 }
